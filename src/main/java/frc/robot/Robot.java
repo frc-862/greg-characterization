@@ -34,8 +34,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends TimedRobot {
 
-  static private double WHEEL_DIAMETER = 0.333;
-  static private double GEARING = 0.1111111111111111;
+  static private double WHEEL_DIAMETER = 0.15;
+  static private double GEARING = 13.55; // 9.0
   static private int PIDIDX = 0;
 
   Joystick stick;
@@ -76,7 +76,7 @@ public class Robot extends TimedRobot {
     leftEncoder = leftMaster.getEncoder();
 
     rightMaster = new CANSparkMax(4, MotorType.kBrushless);
-    rightMaster.setInverted(false);
+    rightMaster.setInverted(true);
     rightMaster.setIdleMode(IdleMode.kBrake);
 
     rightEncoder = rightMaster.getEncoder();
@@ -85,14 +85,14 @@ public class Robot extends TimedRobot {
     leftSlave0.follow(leftMaster, true);
     leftSlave0.setIdleMode(IdleMode.kBrake);
     CANSparkMax leftSlave1 = new CANSparkMax(3, MotorType.kBrushless);
-    leftSlave1.follow(leftMaster);
+    leftSlave1.follow(leftMaster, false);
     leftSlave1.setIdleMode(IdleMode.kBrake);
 
     CANSparkMax rightSlave0 = new CANSparkMax(5, MotorType.kBrushless);
     rightSlave0.follow(rightMaster, true);
     rightSlave0.setIdleMode(IdleMode.kBrake);
     CANSparkMax rightSlave1 = new CANSparkMax(6, MotorType.kBrushless);
-    rightSlave1.follow(rightMaster);
+    rightSlave1.follow(rightMaster, false);
     rightSlave1.setIdleMode(IdleMode.kBrake);
 
     //
@@ -101,7 +101,7 @@ public class Robot extends TimedRobot {
 
     // Note that the angle from the NavX and all implementors of wpilib Gyro
     // must be negated because getAngle returns a clockwise positive angle
-    AHRS navx = new AHRS();
+    AHRS navx = new AHRS(I2C.Port.kMXP);
     gyroAngleRadians = () -> -1 * Math.toRadians(navx.getAngle());
 
     //
@@ -109,7 +109,7 @@ public class Robot extends TimedRobot {
     //
 
     drive = new DifferentialDrive(leftMaster, rightMaster);
-
+    drive.setRightSideInverted(false);
     drive.setDeadband(0);
 
     //
@@ -117,8 +117,9 @@ public class Robot extends TimedRobot {
     // return units and units/s
     //
 
+    // 42 is motor tic per rev TODO fix for comp bot (Greg)
     double encoderConstant =
-        (1 / GEARING) * WHEEL_DIAMETER * Math.PI;
+        (42 / GEARING) * WHEEL_DIAMETER * Math.PI;
 
     leftEncoderPosition = ()
         -> leftEncoder.getPosition() * encoderConstant;
